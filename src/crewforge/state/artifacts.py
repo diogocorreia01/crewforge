@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from crewforge.config.schemas import AgentRole
 
@@ -51,6 +51,30 @@ class IssueSeverity(StrEnum):
     MINOR = "minor"
 
 
+_SEVERITY_ALIASES: dict[str, str] = {
+    "high": IssueSeverity.CRITICAL.value,
+    "blocker": IssueSeverity.CRITICAL.value,
+    "error": IssueSeverity.CRITICAL.value,
+    "medium": IssueSeverity.MAJOR.value,
+    "moderate": IssueSeverity.MAJOR.value,
+    "warning": IssueSeverity.MAJOR.value,
+    "low": IssueSeverity.MINOR.value,
+    "info": IssueSeverity.MINOR.value,
+}
+
+_OWNER_ALIASES: dict[str, str] = {
+    "backend": AgentRole.BACKEND_DEVELOPER.value,
+    "backend_dev": AgentRole.BACKEND_DEVELOPER.value,
+    "frontend": AgentRole.FRONTEND_DEVELOPER.value,
+    "frontend_dev": AgentRole.FRONTEND_DEVELOPER.value,
+    "qa": AgentRole.QA_REVIEWER.value,
+    "architect": AgentRole.TECH_ARCHITECT.value,
+    "designer": AgentRole.UI_UX_DESIGNER.value,
+    "ui_ux": AgentRole.UI_UX_DESIGNER.value,
+    "ba": AgentRole.BUSINESS_ANALYST.value,
+}
+
+
 class QAIssue(BaseModel):
     """Single actionable finding raised by the QA Reviewer."""
 
@@ -61,6 +85,22 @@ class QAIssue(BaseModel):
     file_path: str | None = None
     description: str = Field(..., min_length=1)
     suggested_fix: str = ""
+
+    @field_validator("severity", mode="before")
+    @classmethod
+    def _normalize_severity(cls, value: object) -> object:
+        if isinstance(value, str):
+            key = value.strip().lower()
+            return _SEVERITY_ALIASES.get(key, key)
+        return value
+
+    @field_validator("owner", mode="before")
+    @classmethod
+    def _normalize_owner(cls, value: object) -> object:
+        if isinstance(value, str):
+            key = value.strip().lower().replace("-", "_").replace(" ", "_").replace("/", "_")
+            return _OWNER_ALIASES.get(key, key)
+        return value
 
 
 class QAReport(BaseModel):

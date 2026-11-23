@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import json
+from typing import Any
+
+import yaml
 from langchain_core.tools import BaseTool, StructuredTool
 
 from crewforge.tools.base import WorkspaceContext
@@ -21,13 +25,22 @@ def build_filesystem_tools(ctx: WorkspaceContext) -> dict[str, BaseTool]:
             return f"Artifact not found: {artifact_name}"
         return path.read_text(encoding="utf-8")
 
-    def write_artifact(artifact_name: str, content: str) -> str:
+    def write_artifact(
+        artifact_name: str,
+        content: str | dict[str, Any] | list[Any],
+    ) -> str:
         """Write or overwrite a structured artifact file inside `.ai-team/`."""
         ctx.ensure_artifact_dir()
         path = ctx.resolve_artifact_path(artifact_name)
-        path.write_text(content, encoding="utf-8")
+        if isinstance(content, str):
+            text = content
+        elif artifact_name.endswith((".yaml", ".yml")):
+            text = yaml.safe_dump(content, sort_keys=False)
+        else:
+            text = json.dumps(content, indent=2)
+        path.write_text(text, encoding="utf-8")
         rel = path.relative_to(ctx.workspace_root).as_posix()
-        return f"Wrote artifact '{artifact_name}' ({len(content)} chars) to {rel}."
+        return f"Wrote artifact '{artifact_name}' ({len(text)} chars) to {rel}."
 
     def list_workspace_files(subdir: str = ".", max_entries: int = 100) -> str:
         """List files inside the target workspace, skipping common build/cache directories."""
