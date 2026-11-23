@@ -1,0 +1,49 @@
+# CrewForge Model Registry
+# Defaults use free local models via Ollama (https://ollama.com).
+# Pull recommended models locally before running:
+#   ollama pull qwen2.5:7b
+#   ollama pull qwen2.5-coder:7b
+
+default_profile: local_reasoning
+
+profiles:
+  local_reasoning:
+    provider: ollama
+    model: qwen2.5:7b
+    base_url: "${OLLAMA_BASE_URL:-http://localhost:11434}"
+    temperature: 0.2
+    max_tokens: 4096
+    timeout_seconds: 120
+
+  local_coder:
+    provider: ollama
+    model: qwen2.5-coder:7b
+    base_url: "${OLLAMA_BASE_URL:-http://localhost:11434}"
+    temperature: 0.1
+    max_tokens: 8192
+    timeout_seconds: 180
+
+  local_fast:
+    provider: ollama
+    model: llama3.2:3b
+    base_url: "${OLLAMA_BASE_URL:-http://localhost:11434}"
+    temperature: 0.1
+    max_tokens: 2048
+    timeout_seconds: 60
+
+  # Optional cloud profiles (swap any agent's model_profile to use these)
+  openai_default:
+    provider: openai
+    model: gpt-4o
+    api_key_env: OPENAI_API_KEY
+    temperature: 0.2
+    max_tokens: 4096
+    timeout_seconds: 90
+
+  anthropic_default:
+    provider: anthropic
+    model: claude-3-5-sonnet-latest
+    api_key_env: ANTHROPIC_API_KEY
+    temperature: 0.2
+    max_tokens: 4096
+    timeout_seconds: 90

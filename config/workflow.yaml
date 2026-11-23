@@ -1,0 +1,11 @@
+# CrewForge Workflow Orchestration Settings
+
+artifact_dir_name: ".ai-team"
+max_qa_retries: 3
+enable_hitl_plan_gate: true
+parallel_design_and_arch: false
+parallel_dev: false
+
+checkpointer:
+  backend: sqlite # "sqlite" or "memory"
+  sqlite_filename: "checkpoints.sqlite"
